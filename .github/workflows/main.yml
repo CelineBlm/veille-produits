@@ -1,0 +1,31 @@
+name: Veille Prix — maplatine.com
+
+on:
+  schedule:
+    - cron: '0 7 * * *'  # 7h UTC = 8h Paris (hiver) / 9h (été)
+  workflow_dispatch:       # déclenchement manuel depuis GitHub Actions
+
+jobs:
+  veille:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt
+
+      - name: Lancer la veille
+        env:
+          TAVILY_API_KEY:  ${{ secrets.TAVILY_API_KEY }}
+          GOOGLE_JSON:     ${{ secrets.GOOGLE_JSON }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+        run: python veille_prix.py
