@@ -292,7 +292,7 @@ def _clean(s: str):
         s = s.replace(",", ".")
     try:
         val = float(s)
-        return val if 1 < val < 150_000 else None
+        return val if 10 < val < 150_000 else None
     except ValueError:
         return None
 
