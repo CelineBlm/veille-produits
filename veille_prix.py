@@ -22,9 +22,9 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 # ── CONFIGURATION ─────────────────────────────────────────────
-TAVILY_API_KEY  = os.environ.get("TAVILY_API_KEY", "tvly-XXXX")
+TAVILY_API_KEY  = os.environ.get("TAVILY_API_KEY", "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")
 GOOGLE_JSON     = os.environ.get("GOOGLE_JSON")
-GOOGLE_SHEET_ID = os.environ.get("GOOGLE_SHEET_ID", "")
+GOOGLE_SHEET_ID = os.environ.get("GOOGLE_SHEET_ID", "1E4enI0SjnwmBi09CznT9-x9BoOtX1oT5Mg62uwZLfv0")
 
 MAX_URLS        = 6     # résultats Tavily max par produit
 REQUEST_TIMEOUT = 8     # timeout dur par requête HTTP (secondes)
