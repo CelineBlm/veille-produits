@@ -1,9 +1,5 @@
 """
 veille_prix.py — Veille concurrentielle maplatine.com
-Fusion des deux approches :
-  - Tavily pour la découverte automatique des URLs (votre approche)
-  - Sélecteurs CSS depuis l'onglet Configuration du Sheet (approche collègue)
-  - Timeout dur par requête — aucun blocage possible
 """
 
 import os, re, json, time, logging, gspread
@@ -81,13 +77,13 @@ def read_catalogue(client) -> list:
 
 def read_config(client) -> dict:
     """
-    Lit l'onglet Configuration (onglet 5, index 5) :
+    Lit l'onglet Configuration (onglet 7, index 7) :
     Col A = domaine, Col B = sélecteur, Col C = type (Meta/CSS/JSON-LD)
     Retourne un dict { "domain.com": {"selector": "...", "type": "Meta"} }
     """
     try:
         sh   = client.open_by_key(GOOGLE_SHEET_ID)
-        ws   = sh.get_worksheet(5)       # onglet 5 = Configuration
+        ws   = sh.get_worksheet(5)       # onglet 5 = Configuration (v5 sheet: 6 onglets)
         rows = ws.get_all_values()
         cfg  = {}
         for row in rows[2:]:            # ligne 0=titre, ligne 1=en-têtes
@@ -108,7 +104,7 @@ def read_config(client) -> dict:
 def write_rows(client, rows: list):
     sh = client.open_by_key(GOOGLE_SHEET_ID)
     ws = sh.get_worksheet(1)             # onglet 1 = Historique Prix
-    ws.append_rows(rows, value_input_option="USER_ENTERED")
+    ws.append_rows(rows, value_input_option="RAW")
     log.info(f"  → {len(rows)} ligne(s) écrite(s)")
 
 
