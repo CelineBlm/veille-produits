@@ -4,7 +4,6 @@ Fusion des deux approches :
   - Tavily pour la découverte automatique des URLs (votre approche)
   - Sélecteurs CSS depuis l'onglet Configuration du Sheet (approche collègue)
   - Timeout dur par requête — aucun blocage possible
-  - Zéro Claude API
 """
 
 import os, re, json, time, logging, gspread
@@ -35,6 +34,9 @@ URL_BLACKLIST = [
     r"/marque/", r"/brand/", r"/categorie/", r"/category/", r"/collection/",
     r"/recherche", r"/search", r"srsltid=", r"\?q=", r"\?s=",
     r"/blog/", r"/forum/", r"/avis/", r"/guide/", r"/news/",
+    # Plateformes de paiement / comparateurs
+    r"klarna\.", r"idealo\.", r"ledenicheur\.", r"choozen\.", r"shopzilla\.",
+    r"google\.com/shopping", r"bing\.com/shop",
 ]
 
 HEADERS = {
@@ -333,7 +335,7 @@ def _platform(url: str) -> str:
 
 # ── MAIN ──────────────────────────────────────────────────────
 def main():
-    today = datetime.now().strftime("%d/%m/%Y")
+    today = datetime.now().strftime("%Y-%m-%d")
     log.info(f"=== Veille prix démarrée — {today} ===")
 
     client   = get_client()
