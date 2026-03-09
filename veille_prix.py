@@ -344,6 +344,41 @@ def _platform(url: str) -> str:
     return "autre"
 
 
+# ── PERTINENCE ───────────────────────────────────────────────
+def _is_relevant(libelle: str, title: str, snippet: str) -> bool:
+    """
+    Vérifie que la page trouvée correspond bien au produit cherché.
+    Stratégie : les mots-clés significatifs du libellé doivent apparaître
+    dans le titre ou le snippet de la page.
+    On ignore les mots génériques (prépositions, articles, etc.)
+    """
+    STOP_WORDS = {
+        "de", "du", "des", "le", "la", "les", "un", "une", "et", "en",
+        "avec", "pour", "sur", "par", "au", "aux", "ce", "se", "sa", "son",
+        "platine", "vinyle", "cellule", "préamplificateur", "amplificateur",
+        "lecteur", "enceinte", "câble", "brosse", "phono", "intégré",
+        "manuelle", "réseau", "mc", "mm",
+    }
+    # Extraire les mots-clés significatifs du libellé (longueur >= 3, pas stop word)
+    words = [w.lower().strip("(),.-") for w in libelle.split()]
+    keywords = [w for w in words if len(w) >= 3 and w not in STOP_WORDS]
+
+    # Texte de référence = titre + snippet en minuscules
+    ref_text = (title + " " + snippet).lower()
+
+    if not keywords:
+        return True  # pas de mots-clés = on accepte
+
+    # On exige qu'au moins 60% des mots-clés soient présents
+    matches = sum(1 for kw in keywords if kw in ref_text)
+    ratio = matches / len(keywords)
+
+    if ratio < 0.6:
+        log.info(f"    ✗ Hors-sujet ({ratio:.0%} mots clés trouvés) — {title[:60]}")
+        return False
+    return True
+
+
 # ── MAIN ──────────────────────────────────────────────────────
 def main():
     today = datetime.now().strftime("%Y-%m-%d")
@@ -361,6 +396,10 @@ def main():
         log.info(f"  {len(items)} URL(s) trouvée(s)")
 
         for item in items:
+            # Vérifier la pertinence avant d'extraire le prix
+            if not _is_relevant(p["libelle"], item["title"], item.get("snippet", "")):
+                continue
+
             prix = extract_price(item, config)
             if not prix:
                 continue
