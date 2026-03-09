@@ -64,7 +64,7 @@ def read_catalogue(client) -> list:
     ws   = sh.get_worksheet(0)           # onglet 0 = Catalogue
     rows = ws.get_all_values()
     out  = []
-    for row in rows[2:]:                 # ligne 0=titre, ligne 1=en-têtes
+    for row in rows[3:]:                 # ligne 0=titre, ligne 1=sous-titre, ligne 2=en-têtes
         ref     = str(row[0]).strip()
         libelle = str(row[1]).strip()
         if not ref or not libelle:
