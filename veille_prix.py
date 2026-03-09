@@ -81,13 +81,13 @@ def read_catalogue(client) -> list:
 
 def read_config(client) -> dict:
     """
-    Lit l'onglet Configuration (onglet 7, index 7) :
+    Lit l'onglet Configuration (onglet 5, index 5) :
     Col A = domaine, Col B = sélecteur, Col C = type (Meta/CSS/JSON-LD)
     Retourne un dict { "domain.com": {"selector": "...", "type": "Meta"} }
     """
     try:
         sh   = client.open_by_key(GOOGLE_SHEET_ID)
-        ws   = sh.get_worksheet(7)       # onglet 7 = Configuration
+        ws   = sh.get_worksheet(5)       # onglet 5 = Configuration
         rows = ws.get_all_values()
         cfg  = {}
         for row in rows[2:]:            # ligne 0=titre, ligne 1=en-têtes
