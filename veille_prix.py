@@ -26,13 +26,24 @@ REQUEST_TIMEOUT = 8     # timeout dur par requête HTTP (secondes)
 DELAY_BETWEEN   = 0.3   # délai entre requêtes (secondes)
 WRITE_EVERY     = 20    # écriture dans Sheets tous les N produits
 
+# Seuls ces domaines concurrents sont acceptés (whitelist stricte)
+DOMAIN_WHITELIST = {
+    "amazon.fr", "fnac.com", "boulanger.com", "darty.com", "cdiscount.com",
+    "son-video.com", "sono-elec.com", "hifi.fr", "hifilink.fr", "ldlc.com",
+    "cta-hifi.com", "noir-et-blanc.com", "homecinesolutions.fr",
+    "retrofutur.fr", "laboutiquederic.com", "futureland.fr", "elecson.com",
+    "easylounge.com", "cobra.fr", "lamaisondelahifi.fr", "artisansduson.fr",
+    "exceptionaudio.fr", "opus51.net", "thomann.de", "thomann.fr",
+    "sonovente.com", "woodbrass.com", "rueducommerce.fr", "materiel.net",
+    "bax-shop.fr", "andromeda-france.fr",
+}
+
+# Patterns d'URL qui indiquent une page de liste/catégorie (pas une fiche produit)
 URL_BLACKLIST = [
-    r"/marque/", r"/brand/", r"/categorie/", r"/category/", r"/collection/",
+    r"/marque/", r"/brand/", r"/categorie/", r"/category/",
     r"/recherche", r"/search", r"srsltid=", r"\?q=", r"\?s=",
     r"/blog/", r"/forum/", r"/avis/", r"/guide/", r"/news/",
-    # Plateformes de paiement / comparateurs
-    r"klarna\.", r"idealo\.", r"ledenicheur\.", r"choozen\.", r"shopzilla\.",
-    r"google\.com/shopping", r"bing\.com/shop",
+    r"/l/", r"/c/", r"\?cat=", r"/tag/",
 ]
 
 HEADERS = {
@@ -120,11 +131,9 @@ def tavily_search(libelle: str) -> list:
                 "max_results":         12,
                 "include_raw_content": False,
                 "include_answer":      False,
+                "include_domains": list(DOMAIN_WHITELIST),
                 "exclude_domains": [
-                    "maplatine.com", "facebook.com", "instagram.com",
-                    "youtube.com", "wikipedia.org", "reddit.com",
-                    "pinterest.com", "leboncoin.fr", "vinted.fr",
-                    "tiktok.com", "twitter.com",
+                    "maplatine.com",
                 ],
             },
             timeout=15,
@@ -307,6 +316,12 @@ def _domain(url: str) -> str:
 
 
 def _is_product_url(url: str) -> bool:
+    """Accepte uniquement les URLs de la whitelist qui ne sont pas des pages de liste."""
+    domain = _domain(url)
+    # Rejeter si domaine pas dans la whitelist
+    if domain not in DOMAIN_WHITELIST:
+        return False
+    # Rejeter si pattern de page catégorie/liste/blog
     u = url.lower()
     for p in URL_BLACKLIST:
         if re.search(p, u):
