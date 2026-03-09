@@ -126,7 +126,7 @@ def tavily_search(libelle: str) -> list:
             "https://api.tavily.com/search",
             json={
                 "api_key":             TAVILY_API_KEY,
-                "query":               f"{libelle} prix acheter france",
+                "query":               f'"{libelle}" prix achat',
                 "search_depth":        "basic",
                 "max_results":         12,
                 "include_raw_content": False,
@@ -166,7 +166,7 @@ def tavily_search(libelle: str) -> list:
 
 
 # ── EXTRACTION PRIX ───────────────────────────────────────────
-def extract_price(item: dict, config: dict):
+def extract_price(item: dict, config: dict, libelle: str = ""):
     """
     Cascade d'extraction :
     1. Snippet Tavily (instantané, zéro requête)
@@ -179,10 +179,10 @@ def extract_price(item: dict, config: dict):
         return p
 
     # 2. Scraping avec timeout dur
-    return _scrape(item["url"], config)
+    return _scrape(item["url"], config, libelle)
 
 
-def _scrape(url: str, config: dict):
+def _scrape(url: str, config: dict, libelle: str = ""):
     domain = _domain(url)
     rule   = config.get(domain, {})
 
@@ -197,6 +197,19 @@ def _scrape(url: str, config: dict):
 
         html = resp.text
         soup = BeautifulSoup(html, "html.parser")
+
+        # Vérification sur le vrai titre H1 de la page
+        if libelle:
+            page_title = ""
+            h1 = soup.find("h1")
+            if h1:
+                page_title = h1.get_text(strip=True)
+            elif soup.title:
+                page_title = soup.title.get_text(strip=True)
+            if page_title and not _is_relevant(libelle, page_title, ""):
+                log.info(f"    ✗ Titre page hors-sujet: {page_title[:70]}")
+                return None
+
         typ  = rule.get("type", "").upper()
         sel  = rule.get("selector", "")
 
@@ -400,7 +413,7 @@ def main():
             if not _is_relevant(p["libelle"], item["title"], item.get("snippet", "")):
                 continue
 
-            prix = extract_price(item, config)
+            prix = extract_price(item, config, p["libelle"])
             if not prix:
                 continue
 
